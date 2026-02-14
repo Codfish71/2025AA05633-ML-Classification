@@ -1,83 +1,191 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from sklearn.model_selection import train_test_split
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    matthews_corrcoef,
+    confusion_matrix,
+    roc_auc_score
+)
 
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
+st.set_page_config(
+    page_title="ML Model Evaluation Dashboard",
+    page_icon="📊",
+    layout="wide"
+)
 
-st.title("ML Classification Model Comparison")
+st.markdown("""
+<style>
 
-uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+.header-container {
+    background: linear-gradient(90deg, #1f3c88, #2a5298);
+    padding: 25px;
+    border-radius: 12px;
+    color: white;
+}
 
-model_option = st.selectbox(
+.metric-tile {
+    background: #ffffff;
+    padding: 18px;
+    border-radius: 14px;
+    border: 1px solid #e6e9ef;
+    text-align: center;
+}
+
+.metric-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1f3c88;
+}
+
+.metric-label {
+    font-size: 13px;
+    color: #666;
+}
+
+.section-card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #eaecef;
+    margin-top: 15px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# -------------------------------------------------------
+# HEADER
+# -------------------------------------------------------
+
+st.markdown("""
+<div class="header-container">
+    <h2>Machine Learning Classification Evaluation</h2>
+    <p>Interactive evaluation of classification models on uploaded labeled dataset.</p>
+</div>
+""", unsafe_allow_html=True)
+
+st.write("")
+
+st.sidebar.title("Configuration Panel")
+
+model_choice = st.sidebar.selectbox(
     "Select Model",
     [
-        "Logistic Regression"
+        "Logistic Regression",
+        "Decision Tree",
+        "KNN",
+        "Naive Bayes",
+        "Random Forest",
+        "XGBoost"
     ]
 )
+
+uploaded_file = st.sidebar.file_uploader(
+    "Upload Labeled Test Dataset",
+    type=["csv"]
+)
+
+st.sidebar.markdown("---")
+st.sidebar.caption("Ensure dataset contains target column: income")
+
+# -------------------------------------------------------
+# MODEL LOADING
+# -------------------------------------------------------
+
+@st.cache_resource
+def load_model(name):
+    filename = name.lower().replace(" ", "_") + ".pkl"
+    return joblib.load(f"model/{filename}")
 
 if uploaded_file:
 
     df = pd.read_csv(uploaded_file)
 
-    # Clean target
-    if df["income"].dtype == "object":
-        df["income"] = df["income"].astype(str).str.strip()
-        df["income"] = df["income"].map({"<=50K": 0, ">50K": 1})
+    if "income" not in df.columns:
+        st.error("Target column 'income' not found in dataset.")
+    else:
+        y = df["income"]
+        X = df.drop("income", axis=1)
 
-    X = df.drop("income", axis=1)
-    y = df["income"].astype(int)
+        model = load_model(model_choice)
+        y_pred = model.predict(X)
 
-    categorical_cols = X.select_dtypes(include='object').columns
-    numerical_cols = X.select_dtypes(exclude='object').columns
+        acc = accuracy_score(y, y_pred)
+        prec = precision_score(y, y_pred, average="macro")
+        rec = recall_score(y, y_pred, average="macro")
+        f1 = f1_score(y, y_pred, average="macro")
+        mcc = matthews_corrcoef(y, y_pred)
 
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', StandardScaler(), numerical_cols),
-            ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), categorical_cols)
+        if hasattr(model, "predict_proba"):
+            auc = roc_auc_score(y, model.predict_proba(X)[:,1])
+        else:
+            auc = np.nan
+
+        st.markdown(f"""
+        <div class="section-card">
+            <b>Model:</b> {model_choice} &nbsp;&nbsp; | &nbsp;&nbsp;
+            <b>Samples Evaluated:</b> {len(df)} &nbsp;&nbsp; | &nbsp;&nbsp;
+            <b>Unique Classes:</b> {len(np.unique(y))}
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.write("")
+        metric_cols = st.columns(6)
+
+        metric_values = [
+            ("Accuracy", acc),
+            ("Precision", prec),
+            ("Recall", rec),
+            ("F1 Score", f1),
+            ("MCC", mcc),
+            ("AUC", auc)
         ]
-    )
 
-    models = {
-        "Logistic Regression": LogisticRegression(max_iter=1000),
-        # "Decision Tree": DecisionTreeClassifier(),
-        # "KNN": KNeighborsClassifier(),
-        # "Naive Bayes": GaussianNB(),
-        # "Random Forest": RandomForestClassifier(),
-        # "XGBoost": XGBClassifier(eval_metric='logloss')
-    }
+        for col, (label, value) in zip(metric_cols, metric_values):
+            col.markdown(f"""
+            <div class="metric-tile">
+                <div class="metric-label">{label}</div>
+                <div class="metric-value">{value:.3f}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-    pipeline = Pipeline(steps=[
-        ('preprocessor', preprocessor),
-        ('classifier', models[model_option])
-    ])
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
+        tab1, tab2 = st.tabs(["Confusion Matrix", "Dataset Preview"])
 
-    pipeline.fit(X_train, y_train)
+        with tab1:
+            st.write("")
+            cm = confusion_matrix(y, y_pred)
 
-    y_pred = pipeline.predict(X_test)
+            fig, ax = plt.subplots(figsize=(6,5))
+            sns.heatmap(
+                cm,
+                annot=True,
+                fmt="d",
+                cmap="viridis",
+                ax=ax
+            )
+            ax.set_xlabel("Predicted Label")
+            ax.set_ylabel("Actual Label")
+            st.pyplot(fig)
 
-    st.subheader("Classification Report")
-    st.text(classification_report(y_test, y_pred))
+        with tab2:
+            st.dataframe(df.head())
 
-    st.subheader("Confusion Matrix")
+else:
+    st.info("Upload a labeled test dataset from the sidebar to begin evaluation.")
 
-    cm = confusion_matrix(y_test, y_pred)
 
-    fig, ax = plt.subplots()
-    sns.heatmap(cm, annot=True, fmt="d", ax=ax)
-    st.pyplot(fig)
+st.markdown("""
+<hr>
+<div style="text-align:center;color:#999;font-size:12px;">
+ML Classification Dashboard | Streamlit Deployment | Academic Evaluation
+</div>
+""", unsafe_allow_html=True)
