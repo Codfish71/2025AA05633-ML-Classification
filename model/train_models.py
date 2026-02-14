@@ -23,7 +23,7 @@ for col in df.select_dtypes(include='object').columns:
     df[col] = le.fit_transform(df[col])
 
 X = df.drop("income", axis=1)
-df["income"].apply(lambda x: 1 if x.strip() == ">50K" else 0)
+y = df["income"].apply(lambda x: 1 if x.strip() == ">50K" else 0)
 
 # Train Test Split
 X_train, X_test, y_train, y_test = train_test_split(
