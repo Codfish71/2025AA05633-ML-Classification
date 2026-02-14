@@ -34,6 +34,21 @@ model_choice = st.sidebar.selectbox(
     ]
 )
 
+st.sidebar.markdown("### 📥 Download Sample Dataset")
+
+try:
+    sample_df = pd.read_csv("data/adult.csv")
+
+    st.sidebar.download_button(
+        label="Download Sample CSV",
+        data=sample_df.to_csv(index=False),
+        file_name="sample.csv",
+        mime="text/csv"
+    )
+except Exception:
+    st.sidebar.info("Sample dataset not available.")
+
+
 uploaded_file = st.sidebar.file_uploader("Upload Labeled Test Dataset (CSV)", type=["csv"])
 
 @st.cache_resource
@@ -98,4 +113,4 @@ else:
     st.info("Upload a labeled dataset to begin evaluation.")
 
 st.markdown("---")
-st.caption("ML Assignment | Streamlit Deployment")
+st.caption("2025AA05633 | ML Assignment | Streamlit Deployment")
