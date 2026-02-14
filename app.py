@@ -15,34 +15,10 @@ from sklearn.metrics import (
     roc_auc_score
 )
 
-st.set_page_config(
-    page_title="ML Classification Dashboard",
-    page_icon="📊",
-    layout="wide"
-)
-
-st.markdown("""
-<style>
-.metric-box {
-    background: #ffffff;
-    padding: 16px;
-    border-radius: 12px;
-    border: 1px solid #e6e6e6;
-    text-align: center;
-}
-.metric-value {
-    font-size: 24px;
-    font-weight: 700;
-}
-.metric-label {
-    font-size: 13px;
-    color: #666;
-}
-</style>
-""", unsafe_allow_html=True)
+st.set_page_config(page_title="ML Model Evaluation", layout="wide")
 
 st.title("Machine Learning Model Evaluation Dashboard")
-st.caption("Upload labeled test dataset to evaluate trained classification models.")
+st.caption("Upload labeled dataset to evaluate trained classification models.")
 
 st.sidebar.header("Configuration")
 
@@ -58,32 +34,30 @@ model_choice = st.sidebar.selectbox(
     ]
 )
 
-uploaded_file = st.sidebar.file_uploader(
-    "Upload Labeled Test Dataset (CSV)",
-    type=["csv"]
-)
+uploaded_file = st.sidebar.file_uploader("Upload Labeled Test Dataset (CSV)", type=["csv"])
 
 @st.cache_resource
 def load_model(name):
     return joblib.load(f"model/{name}.pkl")
 
 if uploaded_file is not None:
-
     df = pd.read_csv(uploaded_file)
 
     if "income" not in df.columns:
-        st.error("Target column 'income' not found in dataset.")
+        st.error("Target column 'income' not found.")
         st.stop()
 
-    y_true = df["income"]
+    if df["income"].dtype == "object":
+        df["income"] = df["income"].astype(str).str.strip()
+        df["income"] = df["income"].map({"<=50K": 0, ">50K": 1})
+
+    y_true = df["income"].astype(int)
     X = df.drop("income", axis=1)
 
     model = load_model(model_choice)
-
     y_pred = model.predict(X)
 
-    y_true = y_true.astype(str)
-    y_pred = y_pred.astype(str)
+    y_pred = pd.to_numeric(y_pred)
 
     acc = accuracy_score(y_true, y_pred)
     prec = precision_score(y_true, y_pred, average="macro")
@@ -93,17 +67,10 @@ if uploaded_file is not None:
 
     auc = None
     if hasattr(model, "predict_proba") and len(np.unique(y_true)) == 2:
-        try:
-            y_prob = model.predict_proba(X)[:, 1]
-            y_true_numeric = pd.factorize(y_true)[0]
-            auc = roc_auc_score(y_true_numeric, y_prob)
-        except:
-            auc = None
-
-    st.subheader("Model Performance")
+        y_prob = model.predict_proba(X)[:, 1]
+        auc = roc_auc_score(y_true, y_prob)
 
     cols = st.columns(6)
-
     metrics = [
         ("Accuracy", acc),
         ("Precision", prec),
@@ -114,34 +81,21 @@ if uploaded_file is not None:
     ]
 
     for col, (label, value) in zip(cols, metrics):
-        col.markdown(f"""
-        <div class="metric-box">
-            <div class="metric-label">{label}</div>
-            <div class="metric-value">{value:.3f}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        col.metric(label, f"{value:.3f}")
 
     st.subheader("Confusion Matrix")
-
     cm = confusion_matrix(y_true, y_pred)
 
-    fig, ax = plt.subplots(figsize=(6,5))
-    sns.heatmap(
-        cm,
-        annot=True,
-        fmt="d",
-        cmap="Blues",
-        ax=ax
-    )
+    fig, ax = plt.subplots(figsize=(6, 5))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
     ax.set_xlabel("Predicted")
     ax.set_ylabel("Actual")
     st.pyplot(fig)
 
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
-
 else:
-    st.info("Upload a labeled test dataset from the sidebar to begin evaluation.")
+    st.info("Upload a labeled dataset to begin evaluation.")
 
 st.markdown("---")
-st.caption("ML Assignment | Streamlit Deployment | Model Evaluation")
+st.caption("ML Assignment | Streamlit Deployment")
