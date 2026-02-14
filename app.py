@@ -22,7 +22,7 @@ if uploaded_file:
     model = joblib.load(f"models/saved_models/{model_option}.pkl")
 
     X = df.drop("income", axis=1)
-    y = df["income"]
+    y = df["income"].apply(lambda x: 1 if x.strip() == ">50K" else 0)
 
     y_pred = model.predict(X)
 
