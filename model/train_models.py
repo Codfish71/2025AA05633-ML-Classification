@@ -12,7 +12,7 @@ from sklearn.metrics import (
 
 from sklearn.linear_model import LogisticRegression
 
-df = pd.read_csv("adult.csv")
+df = pd.read_csv("data/adult.csv")
 
 # Preprocessing
 df = df.dropna()
@@ -23,7 +23,11 @@ for col in df.select_dtypes(include='object').columns:
     df[col] = le.fit_transform(df[col])
 
 X = df.drop("income", axis=1)
-y = df["income"].apply(lambda x: 1 if x.strip() == ">50K" else 0)
+if df["income"].dtype == "object":
+    df["income"] = df["income"].astype(str).str.strip()
+    df["income"] = df["income"].map({"<=50K": 0, ">50K": 1})
+
+y = df["income"].astype(int)
 
 # Train Test Split
 X_train, X_test, y_train, y_test = train_test_split(
@@ -55,7 +59,7 @@ for name, model in models.items():
         "MCC": matthews_corrcoef(y_test, y_pred)
     })
 
-    joblib.dump(model, f"{name}.pkl")
+    joblib.dump(model, f"models/saved_models/{name}.pkl")
 
 results_df = pd.DataFrame(results)
 print(results_df)

@@ -19,7 +19,7 @@ model_option = st.selectbox(
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
-    model = joblib.load(f"{model_option}.pkl")
+    model = joblib.load(f"models/saved_models/{model_option}.pkl")
 
     X = df.drop("income", axis=1)
     y = df["income"]
