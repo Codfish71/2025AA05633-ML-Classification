@@ -4,7 +4,7 @@
 ## 🔗 Submission Links
 
 - **GitHub Repository:** <https://github.com/Codfish71/2025AA05633-ML-Classification>  
-- **Live Streamlit Application:** <>  
+- **Live Streamlit Application:** <https://2025aa05633-ml-classification.streamlit.app/>  
 
 ---
 
