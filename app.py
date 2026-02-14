@@ -17,7 +17,7 @@ from sklearn.metrics import (
 
 st.set_page_config(page_title="ML Model Evaluation", layout="wide")
 
-st.title("Machine Learning Model Evaluation Dashboard")
+st.title("Binary Income Classification using Machine Learning Models  Dashboard")
 st.caption("Upload labeled dataset to evaluate trained classification models.")
 
 st.sidebar.header("Configuration")
