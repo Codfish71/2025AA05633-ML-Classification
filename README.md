@@ -94,16 +94,19 @@ These metrics provide a comprehensive assessment of classification performance, 
 
 ## 5️⃣ Model Performance Comparison
 
+## Model Performance Comparison
+
+The following table summarizes the performance of all implemented classification models evaluated on the test dataset.
+
 | Model Name | Accuracy | AUC | Precision | Recall | F1 Score | MCC |
 |------------|----------|------|-----------|--------|----------|------|
-| Logistic Regression | 0.85 | 0.90 | 0.84 | 0.83 | 0.83 | 0.67 |
-| Decision Tree | 0.81 | 0.82 | 0.80 | 0.79 | 0.79 | 0.60 |
-| KNN | 0.83 | 0.86 | 0.82 | 0.81 | 0.81 | 0.63 |
-| Naive Bayes | 0.79 | 0.85 | 0.78 | 0.77 | 0.77 | 0.57 |
-| Random Forest | 0.87 | 0.92 | 0.86 | 0.85 | 0.85 | 0.71 |
-| XGBoost | 0.88 | 0.93 | 0.87 | 0.86 | 0.86 | 0.73 |
+| Logistic Regression | 0.85 | 0.90 | 0.81 | 0.768 | 0.785 | 0.57 |
+| Decision Tree | 0.86 | 0.912 | 0.83 | 0.76 | 0.78 | 0.58 |
+| KNN | 0.867 | 0.923 | 0.82 | 0.80 | 0.81 | 0.63 |
+| Naive Bayes | 0.62 | 0.83 | 0.67 | 0.72 | 0.61 | 0.391 |
+| Random Forest | 0.85 | 0.909 | 0.82 | 0.738 | 0.767 | 0.558 |
+| XGBoost | 0.867 | 0.93 | 0.842 | 0.77 | 0.797 | 0.608 |
 
-Replace the values above with your actual computed results.
 
 ---
 
