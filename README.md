@@ -10,9 +10,11 @@
 
 ## 1️⃣ Problem Statement
 
-The objective of this project is to build and evaluate multiple supervised machine learning classification models on a structured dataset.
+The objective of this project is to develop and evaluate multiple supervised machine learning classification models to predict whether an individual's annual income exceeds 50K based on demographic and socio-economic attributes.
 
-The goal is to compare the predictive performance of different classification algorithms using standardized evaluation metrics and deploy the trained models through an interactive Streamlit web application.
+The dataset used for this task contains 48,842 records with 14 input features, including both numerical and categorical variables such as age, education, occupation, marital status, capital gain, and hours worked per week. The target variable, income, is a binary variable indicating whether the annual income is less than or equal to 50K or greater than 50K.
+
+This problem is formulated as a binary classification task. The primary goal is to build predictive models that can accurately classify individuals into the correct income category while ensuring robustness across multiple evaluation metrics.
 
 The project demonstrates a complete end-to-end machine learning workflow including:
 
@@ -107,29 +109,17 @@ Replace the values above with your actual computed results.
 
 ## 6️⃣ Observations on Model Performance
 
-### Logistic Regression
+## Model-wise Observations
 
-Logistic Regression demonstrates stable and interpretable performance. Since it assumes linear decision boundaries, it performs well when the relationship between predictors and the target is approximately linear.
+| ML Model Name | Observation about model performance |
+|---------------|-------------------------------------|
+| Logistic Regression | Logistic Regression provides stable and interpretable performance. Since it assumes a linear relationship between features and the log-odds of the target variable, it performs reasonably well but may struggle to capture complex nonlinear interactions among features. |
+| Decision Tree | The Decision Tree model effectively captures nonlinear relationships and feature interactions. However, without proper constraints such as limited depth, it can overfit the training data, leading to slightly reduced generalization performance. |
+| KNN | K-Nearest Neighbors performs competitively when features are properly scaled. Its performance depends heavily on the choice of K and distance metric. It may be sensitive to noise and class imbalance and requires higher memory since it stores the entire training dataset. |
+| Naive Bayes | Naive Bayes is computationally efficient and fast to train. However, it assumes conditional independence among features, which may not always hold true in real-world data, resulting in comparatively lower predictive performance. |
+| Random Forest (Ensemble) | Random Forest improves stability and reduces overfitting by aggregating multiple decision trees. It captures complex feature interactions effectively and generally provides strong and consistent performance across evaluation metrics. |
+| XGBoost (Ensemble) | XGBoost achieves superior performance due to its gradient boosting framework, regularization mechanisms, and ability to iteratively correct errors from previous models. It demonstrates high accuracy, strong generalization, and improved AUC compared to other models. |
 
-### Decision Tree
-
-The Decision Tree model captures nonlinear feature interactions but tends to overfit if not properly regularized. Limiting tree depth improved generalization.
-
-### K-Nearest Neighbors
-
-KNN performance is influenced by feature scaling and the choice of K. It performs competitively but requires more memory due to storing training data.
-
-### Naive Bayes
-
-Naive Bayes assumes conditional independence among features. While this assumption is strong, it provides fast training and reasonable performance.
-
-### Random Forest
-
-Random Forest reduces overfitting by averaging multiple decision trees. It improves stability and generalization compared to a single decision tree.
-
-### XGBoost
-
-XGBoost achieves the highest overall performance. The boosting mechanism allows the model to iteratively correct previous errors, leading to improved predictive accuracy and higher AUC values.
 
 ---
 
